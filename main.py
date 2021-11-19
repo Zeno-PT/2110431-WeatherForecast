@@ -145,7 +145,8 @@ for input_file in files:
     m = m.astype(np.uint8)
 #    plt.imshow(m,cmap='gray')
 #    plt.show()
-    cv2.imwrite(path2+'gray_'+input_file[-5:], cv2.cvtColor(m, cv2.COLOR_BGR2GRAY))
+    a = input_file.split('/')
+    cv2.imwrite(path2+'gray_'+a[3], cv2.cvtColor(m, cv2.COLOR_BGR2GRAY))
     mean_all_pixels = np.mean(m)  # find mean of all pixels
     _, r = cv2.threshold(m, mean_all_pixels, 255,
                          cv2.THRESH_TOZERO)  # thresholding
@@ -154,7 +155,7 @@ for input_file in files:
     z = (check == 1).sum()
 #    plt.imshow(r,cmap='gray')
 #    plt.show()
-    cv2.imwrite(path3+'normalized_'+input_file[-5:], cv2.cvtColor(r, cv2.COLOR_BGR2GRAY))
+    cv2.imwrite(path3+'normalized_'+a[3], cv2.cvtColor(r, cv2.COLOR_BGR2GRAY))
     mean_cloud = sum1/z  # find mean of cloud area
     print(input_file+" mean = "+str(mean_cloud))
     for i in range(len(means)):
