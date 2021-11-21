@@ -19,12 +19,15 @@ for r, d, f in os.walk(path):
             files.append(os.path.join(r, file))
 for input_file in files:
     f = cv2.imread(input_file)
-    f[:, :, 0] = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722 + \
-        f[:, :, 2]*0.7152  # normal : 0.114*B+0.587*G+0.2989*R
-    f[:, :, 1] = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152
-    f[:, :, 2] = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152
+    #print(f.shape)
+    a = (f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152)
+    f[:, :, 0] = a # normal : 0.114*B+0.587*G+0.2989*R
+    f[:, :, 1] = a
+    f[:, :, 2] = a
+    #print(f)
     f = (255/1)*(f/(255/1))**2  # increase different between sky and cloud
     f = f.astype(np.uint8)
+    #print(f)
     cv2.imwrite(path2+'gray_'+input_file[-8:], cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
     mean_all_pixels = np.mean(f)  # find mean of all pixels
     _, n = cv2.threshold(f, mean_all_pixels, 255,
@@ -68,30 +71,32 @@ def CalculateMeans(k, maxIterations=100000):
     means = InitializeMeans(k, cMin, cMax)
     # Initialize clusters, the array to hold
     # the number of items in a class
-    clusterSizes = [1]*len(means)
+    clusterSizes = [0]*len(means)
     # An array to hold the cluster an item is in
     belongsTo = [0]*len(meansl)
     # Calculate means
     for _ in range(maxIterations):  # loop until no more cluster change
         # If no change of cluster occurs, halt
-        # print(means)
+        print(means)
         noChange = True
         for i in range(len(meansl)):  # meansl: each cloud mean of training set
             item = meansl[i]
             # Classify item into a cluster and update the
             # corresponding means.
             index = Classify(means, item)  # check distance with each cluster
-            # print(index)
+            print(index)
             clusterSizes[index] += 1
+            print(clusterSizes)
             cSize = clusterSizes[index]
-            # print(means[index])
+            print(means[index])
             means[index] = UpdateMean(
                 cSize, means[index], item)  # updated cluster mean
-            # print(means[index])
+            print(means)
             # Item changed cluster
             if (index != belongsTo[i]):
                 noChange = False
             belongsTo[i] = index
+            print(belongsTo)
             # Nothing changed, return
         if (noChange):
             break
@@ -102,9 +107,9 @@ def Classify(means, item):
     minimum = sys.maxsize
     index = -1
     for i in range(len(means)):  # means: mean of each cluster
-        # print("i:"+str(i))
+        print("i:"+str(i))
         dis = EuclideanDistance(item, means[i][0])
-        # print("dis:"+str(dis))
+        print("dis:"+str(dis))
         if (dis < minimum):
             minimum = dis
             index = i

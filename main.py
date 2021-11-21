@@ -19,10 +19,10 @@ for r, d, f in os.walk(path):
             files.append(os.path.join(r, file))
 for input_file in files:
     f = cv2.imread(input_file)
-    f[:, :, 0] = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722 + \
-        f[:, :, 2]*0.7152  # normal : 0.114*B+0.587*G+0.2989*R
-    f[:, :, 1] = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152
-    f[:, :, 2] = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152
+    a = (f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152)
+    f[:, :, 0] = a # normal : 0.114*B+0.587*G+0.2989*R
+    f[:, :, 1] = a
+    f[:, :, 2] = a
     f = (255/1)*(f/(255/1))**2  # increase different between sky and cloud
     f = f.astype(np.uint8)
     cv2.imwrite(path2+'gray_'+input_file[-8:], cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
@@ -130,6 +130,9 @@ path = 'images/test/original/'
 path2 = 'images/test/gray/'
 path3 = 'images/test/normalized/'
 files = []
+predict = []
+#label = [0,1,1,2,0,1,1,0,1,1,0,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1] # add value here
+label = [2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0]
 for r, d, f in os.walk(path):
     for file in f:
         if('.png' in file or '.jpg' in file):
@@ -168,6 +171,7 @@ for input_file in files:
             v = v+1
     else:
         v = len(means)-1
+    predict.append(v)
     print('Current weather condition is:')
     if v == 0:
         print('SUNNY')
@@ -175,3 +179,7 @@ for input_file in files:
         print('CLOUDY')
     elif v == 2:
         print('HIGH CHANCE OF RAIN')
+predict_a = np.array(predict)
+label_a = np.array(label)
+#print(np.sum(predict_a==label_a)/predict_a.shape[0])
+print(np.sum(predict_a!=label_a)/predict_a.shape[0])
