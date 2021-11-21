@@ -19,16 +19,17 @@ for r, d, f in os.walk(path):
             files.append(os.path.join(r, file))
 for input_file in files:
     f = cv2.imread(input_file)
-    #print(f.shape)
+    # print(f.shape)
     a = (f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152)
-    f[:, :, 0] = a # normal : 0.114*B+0.587*G+0.2989*R
+    f[:, :, 0] = a  # normal : 0.114*B+0.587*G+0.2989*R
     f[:, :, 1] = a
     f[:, :, 2] = a
-    #print(f)
+    # print(f)
     f = (255/1)*(f/(255/1))**2  # increase different between sky and cloud
     f = f.astype(np.uint8)
-    #print(f)
-    cv2.imwrite(path2+'gray_'+input_file[-8:], cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
+    # print(f)
+    cv2.imwrite(path2+'gray_'+input_file[-8:],
+                cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
     mean_all_pixels = np.mean(f)  # find mean of all pixels
     _, n = cv2.threshold(f, mean_all_pixels, 255,
                          cv2.THRESH_TOZERO)  # thresholding
@@ -37,7 +38,8 @@ for input_file in files:
     z = (check == 1).sum()
 #    plt.imshow(n,cmap='gray')
 #    plt.show()
-    cv2.imwrite(path3+'normalized_'+input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
+    cv2.imwrite(path3+'normalized_' +
+                input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
     mean_cloud = sum1/z  # find mean of cloud area
     print(input_file+" mean = "+str(mean_cloud))
     meansl.append(mean_cloud)

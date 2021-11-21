@@ -1,13 +1,12 @@
 import cv2
 import numpy as np
 import os
-#import pandas as pd
 import random as rd
 import math
 import sys
 import matplotlib.pyplot as plt
 
-## Training ##
+############################### Training #################################
 path = 'images/train/original/'
 path2 = 'images/train/gray/'
 path3 = 'images/train/normalized/'
@@ -19,13 +18,14 @@ for r, d, f in os.walk(path):
             files.append(os.path.join(r, file))
 for input_file in files:
     f = cv2.imread(input_file)
-    a = (f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152)
-    f[:, :, 0] = a # normal : 0.114*B+0.587*G+0.2989*R
+    a = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152
+    f[:, :, 0] = a  # normal : 0.114*B+0.587*G+0.2989*R
     f[:, :, 1] = a
     f[:, :, 2] = a
     f = (255/1)*(f/(255/1))**2  # increase different between sky and cloud
     f = f.astype(np.uint8)
-    cv2.imwrite(path2+'gray_'+input_file[-8:], cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
+    cv2.imwrite(path2+'gray_'+input_file[-8:],
+                cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
     mean_all_pixels = np.mean(f)  # find mean of all pixels
     _, n = cv2.threshold(f, mean_all_pixels, 255,
                          cv2.THRESH_TOZERO)  # thresholding
@@ -34,7 +34,8 @@ for input_file in files:
     z = (check == 1).sum()
 #    plt.imshow(n,cmap='gray')
 #    plt.show()
-    cv2.imwrite(path3+'normalized_'+input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
+    cv2.imwrite(path3+'normalized_' +
+                input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
     mean_cloud = sum1/z  # find mean of cloud area
     print(input_file+" mean = "+str(mean_cloud))
     meansl.append(mean_cloud)
@@ -68,7 +69,7 @@ def CalculateMeans(k, maxIterations=100000):
     means = InitializeMeans(k, cMin, cMax)
     # Initialize clusters, the array to hold
     # the number of items in a class
-    clusterSizes = [1]*len(means)
+    clusterSizes = [0]*len(means)
     # An array to hold the cluster an item is in
     belongsTo = [0]*len(meansl)
     # Calculate means
@@ -123,7 +124,7 @@ means = CalculateMeans(3)  # Calculate 3 cluster means
 means.sort()
 print("Means = "+str(means))
 g = FindClusters(means, meansl)
-print("Cluster = "+str(g))
+#print("Cluster = "+str(g))
 
 ############################### Testing #################################
 path = 'images/test/original/'
@@ -131,12 +132,14 @@ path2 = 'images/test/gray/'
 path3 = 'images/test/normalized/'
 files = []
 predict = []
-#label = [0,1,1,2,0,1,1,0,1,1,0,1,1,1,0,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1] # add value here
-label = [2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0]
+dict = {"B1.jpg": 1, "B2.jpg": 1, "B3.jpg": 0, "B4.jpg": 0, "B5.jpg": 0, "B6.jpg": 0, "B7.jpg": 1, "B8.jpg": 0, "B9.jpg": 1, "B10.jpg": 0, "B11.jpg": 0, "B12.jpg": 2, "B13.jpg": 0, "B14.jpg": 1, "C1.jpg": 0, "C2.jpg": 0,
+        "C3.jpg": 2, "C4.jpg": 1, "C5.jpg": 1, "C6.jpg": 0, "C7.jpg": 0, "C8.jpg": 0, "C9.jpg": 0, "U1.jpg": 0, "U2.jpg": 0, "U3.jpg": 1, "U4.jpg": 1, "U5.jpg": 1, "U6.jpg": 1, "U7.jpg": 1, "U8.jpg": 1, "U9.jpg": 1}
+label = []  # add value here
 for r, d, f in os.walk(path):
     for file in f:
         if('.png' in file or '.jpg' in file):
             files.append(os.path.join(r, file))
+            label.append(dict[file])
 for input_file in files:
     m = cv2.imread(input_file)
     v = 0
@@ -181,5 +184,6 @@ for input_file in files:
         print('HIGH CHANCE OF RAIN')
 predict_a = np.array(predict)
 label_a = np.array(label)
-#print(np.sum(predict_a==label_a)/predict_a.shape[0])
-print(np.sum(predict_a!=label_a)/predict_a.shape[0])
+# print(np.sum(predict_a==label_a)/predict_a.shape[0])
+print("Accuracy: "+str(np.sum(predict_a ==
+                              label_a)/predict_a.shape[0]*100)+"%")
