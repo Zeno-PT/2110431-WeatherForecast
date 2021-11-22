@@ -36,7 +36,10 @@ for input_file in files:
                          cv2.THRESH_TOZERO)  # thresholding
     cv2.imwrite(path3+'cloud_masked_' +
                 input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
-        
+    kernel = np.ones((15, 15), np.uint8)
+    n = cv2.morphologyEx(n, cv2.MORPH_CLOSE, kernel)
+    cv2.imwrite(path4+'morph_' +
+                input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
     check = (n[:, :, 0] != 0)
     sum1 = np.sum(n[check])/3  # get only one channel
     z = (check == 1).sum()

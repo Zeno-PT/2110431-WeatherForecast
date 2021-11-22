@@ -6,10 +6,11 @@ import math
 import sys
 import matplotlib.pyplot as plt
 
+
 def InitializeMeans(k, m, M):
-    #means = [[0] for _ in range(k)]  # [[0],[0],...] with only 1 feature
-    #for item in means:
-        #item[0] = rd.uniform(m+1, M-1)  # random mean for initial mean
+    # means = [[0] for _ in range(k)]  # [[0],[0],...] with only 1 feature
+    # for item in means:
+    # item[0] = rd.uniform(m+1, M-1)  # random mean for initial mean
     means = [[m+1], [(m+M)/2], [M-1]]
     return means
 
@@ -83,7 +84,8 @@ def FindClusters(means, meansl):
         clusters[index].append(item)
     return clusters
 
-def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
+
+def modeTrainTest(mode):  # mode 0: Normal image, mode 1: Cloud masked image
     ############################### Training #################################
     path = 'images/train/original/'
     path2 = 'images/train/normalized/'
@@ -91,7 +93,7 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
     path4 = 'images/train/morph/'
     files = []
     meansl = []
-    if (mode==0):
+    if (mode == 0):
         print("Using normal image:")
     else:
         print("Using image after image processing:")
@@ -101,25 +103,30 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
                 files.append(os.path.join(r, file))
     for input_file in files:
         f = cv2.imread(input_file)
-        if (mode==1):
+        if (mode == 1):
             a = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152
             f[:, :, 0] = a  # normal : 0.114*B+0.587*G+0.2989*R
             f[:, :, 1] = a
             f[:, :, 2] = a
-            f = (255/1)*(f/(255/1))**2  # increase different between sky and cloud
+            # increase different between sky and cloud
+            f = (255/1)*(f/(255/1))**2
             f = f.astype(np.uint8)
             cv2.imwrite(path2+'normalized_'+input_file[-8:],
                         cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
             mean_all_pixels = np.mean(f)  # find mean of all pixels
             _, n = cv2.threshold(f, mean_all_pixels, 255,
-                                cv2.THRESH_TOZERO)  # thresholding
+                                 cv2.THRESH_TOZERO)  # thresholding
+            cv2.imwrite(path3+'cloud_masked_' +
+                        input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
+            kernel = np.ones((15, 15), np.uint8)
+            n = cv2.morphologyEx(n, cv2.MORPH_CLOSE, kernel) # morphology to get some cloud image that was threshold out
+            cv2.imwrite(path4+'morph_' +
+                        input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
             check = (n[:, :, 0] != 0)
             sum1 = np.sum(n[check])/3  # get only one channel
             z = (check == 1).sum()
     #    plt.imshow(n,cmap='gray')
     #    plt.show()
-            cv2.imwrite(path3+'cloud_masked_' +
-                    input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
             mean_cloud = sum1/z  # find mean of cloud area
         else:
             mean_cloud = np.sum(f)/(f.shape[0]*f.shape[1]*f.shape[2])
@@ -127,7 +134,6 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
         meansl.append(mean_cloud)
     M = max(meansl)
     m = min(meansl)
-
 
     means = CalculateMeans(m, M, meansl, 3)  # Calculate 3 cluster means
     means.sort()
@@ -153,28 +159,34 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
     for input_file in files:
         m = cv2.imread(input_file)
         v = 0
-        if (mode==1):
-        # normal : 0.114*B+0.587*G+0.2989*R (increase B and R ratio)
-            a = m[:, :, 0]*0.2126+m[:, :, 1]*0.0722+m[:, :, 2]*0.7152
-            m[:, :, 0] = a  # normal : 0.114*B+0.587*G+0.2989*R
-            m[:, :, 1] = a
-            m[:, :, 2] = a
+        if (mode == 1):
+            # normal : 0.114*B+0.587*G+0.2989*R (increase B and R ratio)
+            b = m[:, :, 0]*0.2126+m[:, :, 1]*0.0722+m[:, :, 2]*0.7152
+            m[:, :, 0] = b  # normal : 0.114*B+0.587*G+0.2989*R
+            m[:, :, 1] = b
+            m[:, :, 2] = b
 
             m = (255/1) * (m/(255/1))**2
             m = m.astype(np.uint8)
         #    plt.imshow(m,cmap='gray')
         #    plt.show()
             a = input_file.split('/')
-            cv2.imwrite(path2+'normalized_'+a[3], cv2.cvtColor(m, cv2.COLOR_BGR2GRAY))
+            cv2.imwrite(path2+'normalized_' +
+                        a[3], cv2.cvtColor(m, cv2.COLOR_BGR2GRAY))
             mean_all_pixels = np.mean(m)  # find mean of all pixels
             _, r = cv2.threshold(m, mean_all_pixels, 255,
-                                cv2.THRESH_TOZERO)  # thresholding
+                                 cv2.THRESH_TOZERO)  # thresholding
+            cv2.imwrite(path3+'cloud_masked_' +
+                        a[3], cv2.cvtColor(r, cv2.COLOR_BGR2GRAY))
+            kernel = np.ones((15, 15), np.uint8)
+            r = cv2.morphologyEx(r, cv2.MORPH_CLOSE, kernel)
+            cv2.imwrite(path4+'morph_' +
+                        a[3], cv2.cvtColor(r, cv2.COLOR_BGR2GRAY))
             check = (r[:, :, 0] != 0)
             sum1 = np.sum(r[check])/3
             z = (check == 1).sum()
     #    plt.imshow(r,cmap='gray')
     #    plt.show()
-            cv2.imwrite(path3+'cloud_masked_'+a[3], cv2.cvtColor(r, cv2.COLOR_BGR2GRAY))
             mean_cloud = sum1/z  # find mean of cloud area
         else:
             mean_cloud = np.sum(m)/(m.shape[0]*m.shape[1]*m.shape[2])
@@ -201,8 +213,9 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
     label_a = np.array(label)
     # print(np.sum(predict_a==label_a)/predict_a.shape[0])
     print("Accuracy: "+str(np.sum(predict_a ==
-                                label_a)/predict_a.shape[0]*100)+"%")
+                                  label_a)/predict_a.shape[0]*100)+"%")
     return
+
 
 modeTrainTest(0)
 modeTrainTest(1)
