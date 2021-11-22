@@ -86,8 +86,9 @@ def FindClusters(means, meansl):
 def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
     ############################### Training #################################
     path = 'images/train/original/'
-    path2 = 'images/train/gray/'
-    path3 = 'images/train/normalized/'
+    path2 = 'images/train/normalized/'
+    path3 = 'images/train/cloud_masked/'
+    path4 = 'images/train/morph/'
     files = []
     meansl = []
     if (mode==0):
@@ -107,7 +108,7 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
             f[:, :, 2] = a
             f = (255/1)*(f/(255/1))**2  # increase different between sky and cloud
             f = f.astype(np.uint8)
-            cv2.imwrite(path2+'gray_'+input_file[-8:],
+            cv2.imwrite(path2+'normalized_'+input_file[-8:],
                         cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
             mean_all_pixels = np.mean(f)  # find mean of all pixels
             _, n = cv2.threshold(f, mean_all_pixels, 255,
@@ -117,7 +118,7 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
             z = (check == 1).sum()
     #    plt.imshow(n,cmap='gray')
     #    plt.show()
-            cv2.imwrite(path3+'normalized_' +
+            cv2.imwrite(path3+'cloud_masked_' +
                     input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
             mean_cloud = sum1/z  # find mean of cloud area
         else:
@@ -136,8 +137,9 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
 
     ############################### Testing #################################
     path = 'images/test/original/'
-    path2 = 'images/test/gray/'
-    path3 = 'images/test/normalized/'
+    path2 = 'images/test/normalized/'
+    path3 = 'images/test/cloud_masked/'
+    path4 = 'images/test/morph/'
     files = []
     predict = []
     dict = {"B1.jpg": 0, "B2.jpg": 1, "B3.jpg": 0, "B4.jpg": 1, "B5.jpg": 0, "B6.jpg": 1, "B7.jpg": 1, "B8.jpg": 1, "B9.jpg": 1, "B10.jpg": 1, "B11.jpg": 1, "B12.jpg": 2, "B13.jpg": 0, "B14.jpg": 1, "C1.jpg": 0, "C2.jpg": 0,
@@ -163,7 +165,7 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
         #    plt.imshow(m,cmap='gray')
         #    plt.show()
             a = input_file.split('/')
-            cv2.imwrite(path2+'gray_'+a[3], cv2.cvtColor(m, cv2.COLOR_BGR2GRAY))
+            cv2.imwrite(path2+'normalized_'+a[3], cv2.cvtColor(m, cv2.COLOR_BGR2GRAY))
             mean_all_pixels = np.mean(m)  # find mean of all pixels
             _, r = cv2.threshold(m, mean_all_pixels, 255,
                                 cv2.THRESH_TOZERO)  # thresholding
@@ -172,7 +174,7 @@ def modeTrainTest(mode): # mode 0: Normal image, mode 1: Cloud masked image
             z = (check == 1).sum()
     #    plt.imshow(r,cmap='gray')
     #    plt.show()
-            cv2.imwrite(path3+'normalized_'+a[3], cv2.cvtColor(r, cv2.COLOR_BGR2GRAY))
+            cv2.imwrite(path3+'cloud_masked_'+a[3], cv2.cvtColor(r, cv2.COLOR_BGR2GRAY))
             mean_cloud = sum1/z  # find mean of cloud area
         else:
             mean_cloud = np.sum(m)/(m.shape[0]*m.shape[1]*m.shape[2])

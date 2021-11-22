@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 
 ## Training ##
 path = 'images/train1/original/'
-path2 = 'images/train1/gray/'
-path3 = 'images/train1/normalized/'
+path2 = 'images/train1/normalized/'
+path3 = 'images/train1/cloud_masked/'
+path4 = 'images/train1/morph/'
 files = []
 meansl = []
 for r, d, f in os.walk(path):
@@ -28,18 +29,19 @@ for input_file in files:
     f = (255/1)*(f/(255/1))**2  # increase different between sky and cloud
     f = f.astype(np.uint8)
     # print(f)
-    cv2.imwrite(path2+'gray_'+input_file[-8:],
+    cv2.imwrite(path2+'normalized_'+input_file[-8:],
                 cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
     mean_all_pixels = np.mean(f)  # find mean of all pixels
     _, n = cv2.threshold(f, mean_all_pixels, 255,
                          cv2.THRESH_TOZERO)  # thresholding
+    cv2.imwrite(path3+'cloud_masked_' +
+                input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
+        
     check = (n[:, :, 0] != 0)
     sum1 = np.sum(n[check])/3  # get only one channel
     z = (check == 1).sum()
 #    plt.imshow(n,cmap='gray')
 #    plt.show()
-    cv2.imwrite(path3+'normalized_' +
-                input_file[-8:], cv2.cvtColor(n, cv2.COLOR_BGR2GRAY))
     mean_cloud = sum1/z  # find mean of cloud area
     print(input_file+" mean = "+str(mean_cloud))
     meansl.append(mean_cloud)
