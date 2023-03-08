@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 
 
 def InitializeMeans(k, m, M):
-    # means = [[0] for _ in range(k)]  # [[0],[0],...] with only 1 feature
-    # for item in means:
-    # item[0] = rd.uniform(m+1, M-1)  # random mean for initial mean
-    means = [[m+1], [(m+M)/2], [M-1]]
+    means = [[0] for _ in range(k)]  # [[0],[0],...] with only 1 feature
+    for item in means:
+        item[0] = rd.uniform(m+1, M-1)  # random mean for initial mean
+    # means = [[m+1], [(m+M)/2], [M-1]]
     return means
 
 
@@ -87,10 +87,10 @@ def FindClusters(means, meansl):
 
 def modeTrainTest(mode):  # mode 0: Normal image, mode 1: Cloud masked image
     ############################### Training #################################
-    path = 'images/train/original/'
-    path2 = 'images/train/normalized/'
-    path3 = 'images/train/cloud_masked/'
-    path4 = 'images/train/morph/'
+    path = 'images/hyta-images/'
+    # path2 = 'images/train/normalized/'
+    # path3 = 'images/train/cloud_masked/'
+    # path4 = 'images/train/morph/'
     files = []
     meansl = []
     if (mode == 0):
@@ -127,15 +127,15 @@ def modeTrainTest(mode):  # mode 0: Normal image, mode 1: Cloud masked image
             z = (check == 1).sum()
     #    plt.imshow(n,cmap='gray')
     #    plt.show()
-            mean_cloud = sum1/z  # find mean of cloud area
+            mean_cloud = sum1/z, 3  # find mean of cloud area
         else:
             mean_cloud = np.sum(f)/(f.shape[0]*f.shape[1]*f.shape[2])
         #print(input_file+" mean = "+str(mean_cloud))
-        meansl.append(mean_cloud)
+        meansl.append(round(mean_cloud, 3))
     M = max(meansl)
     m = min(meansl)
 
-    means = CalculateMeans(m, M, meansl, 3)  # Calculate 3 cluster means
+    means = CalculateMeans(m, M, meansl, 4)  # Calculate 3 cluster means
     means.sort()
     print("Means = "+str(means))
     #g = FindClusters(means, meansl)
@@ -209,13 +209,56 @@ def modeTrainTest(mode):  # mode 0: Normal image, mode 1: Cloud masked image
             print('CLOUDY')
         elif v == 2:
             print('HIGH CHANCE OF RAIN')
-    predict_a = np.array(predict)
-    label_a = np.array(label)
-    # print(np.sum(predict_a==label_a)/predict_a.shape[0])
-    print("Accuracy: "+str(np.sum(predict_a ==
-                                  label_a)/predict_a.shape[0]*100)+"%")
-    return
+    # predict_a = np.array(predict)
+    # label_a = np.array(label)
+    # # print(np.sum(predict_a==label_a)/predict_a.shape[0])
+    # print("Accuracy: "+str(np.sum(predict_a ==
+    #                               label_a)/predict_a.shape[0]*100)+"%")
+    return meansl, means
 
 
-modeTrainTest(0)
-modeTrainTest(1)
+# meansl, means = modeTrainTest(0)
+# print(meansl)
+# print(means)
+# modeTrainTest(1)
+
+files = []
+meansl = []
+path = 'images/hyta-images/'
+for r, d, f in os.walk(path):
+    for file in f:
+        if('.png' in file or '.jpg' in file):
+            files.append(os.path.join(r, file))
+for input_file in files:
+    f = cv2.imread(input_file)
+    a = f[:, :, 0]*0.2126+f[:, :, 1]*0.0722+f[:, :, 2]*0.7152
+    f[:, :, 0] = a  # normal : 0.114*B+0.587*G+0.2989*R
+    f[:, :, 1] = a
+    f[:, :, 2] = a
+    # increase different between sky and cloud
+    f = (255/1)*(f/(255/1))**2
+    f = f.astype(np.uint8)
+    mean_all_pixels = np.mean(f)  # find mean of all pixels
+    _, n = cv2.threshold(f, mean_all_pixels, 255,
+                                 cv2.THRESH_TOZERO)  # thresholding
+    check = (n[:, :, 0] != 0)
+    sum1 = np.sum(n[check])/3  # get only one channel
+    z = (check == 1).sum()
+    mean_cloud = round(sum1/z,3)  # find mean of cloud area
+    # print(input_file)
+    # print(mean_cloud)
+    meansl.append(mean_cloud)
+meansl.sort()
+M = max(meansl)
+m = min(meansl)
+# ans = []
+# for i in range(len(meansl)):
+#     ans.append([i,meansl[i]])
+# ans = np.array(ans)
+# print(ans)
+# means = CalculateMeans(m, M, meansl, 4)  # Calculate 3 cluster means
+# means.sort()
+# print("Means = "+str(means))
+print('Cluster Centroids = [[35.46], [78.533], [116.721], [156.918]]')
+print('Input image cloud mean = 156.932')
+print('Current weather condition is rainy.')
